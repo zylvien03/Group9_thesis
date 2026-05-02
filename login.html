@@ -249,7 +249,7 @@
     spinner.style.display = 'block';
     loginBtn.disabled = true;
 
-    // Replace this block with your actual backend auth fetch() call
+                                      // Replace this block with your actual backend auth fetch() call
     await new Promise(r => setTimeout(r, 1200));
     const success = uVal.toLowerCase() === 'admin' && pVal === 'Fleet@2024!';
 
@@ -265,7 +265,7 @@
       loginBtn.style.background = 'linear-gradient(135deg,#0a5c30,#063d20)';
       loginBtn.style.borderColor = 'rgba(0,200,100,0.3)';
       document.getElementById('sessionNote').textContent = 'Redirecting to dashboard...';
-      // window.location.href = 'index.html'; // Uncomment to redirect
+      window.location.href = 'index.html'; // Uncomment to redirect
     } else {
       attempts++;
       sessionStorage.setItem(ATTEMPTS_KEY, String(attempts));

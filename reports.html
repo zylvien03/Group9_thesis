@@ -27,7 +27,6 @@
           <label>Select Vehicle:</label>
           <select id="vehicleSelect" class="report-input">
             <option value="all">All Vehicles</option>
-            <option value="unit01">Unit 01</option>
           </select>
 
           <label>Date Range:</label>
@@ -127,6 +126,7 @@
 
       const COL = {
         timestamp:    0,
+        unit:         null,
         frequency:    1,
         courtesy:     2,
         safety:       3,
@@ -180,37 +180,55 @@
         }
       }
 
-      // ── Apply date filter from the controls ───────────────────────
+      // ── Apply date + vehicle filter from the controls ─────────────
       function applyFilters() {
         const from = document.getElementById("dateFrom").value;
         const to   = document.getElementById("dateTo").value;
+        const unit = document.getElementById("vehicleSelect").value;
 
-        if (!from && !to) {
-          renderFeedback(allRows);
-          document.getElementById("filter-status").textContent = "Showing all responses.";
-          return;
+        let filtered = filterByUnit(allRows, unit);
+
+        if (from || to) {
+          const fromDate = from ? new Date(from) : null;
+          const toDate   = to   ? new Date(to + "T23:59:59") : null;
+          filtered = filtered.filter(row => {
+            const ts = new Date(row[COL.timestamp] || "");
+            if (isNaN(ts)) return false;
+            if (fromDate && ts < fromDate) return false;
+            if (toDate   && ts > toDate)   return false;
+            return true;
+          });
         }
-
-        const fromDate = from ? new Date(from) : null;
-        const toDate   = to   ? new Date(to + "T23:59:59") : null;
-
-        const filtered = allRows.filter(row => {
-          const ts = new Date(row[COL.timestamp] || "");
-          if (isNaN(ts)) return false;
-          if (fromDate && ts < fromDate) return false;
-          if (toDate   && ts > toDate)   return false;
-          return true;
-        });
 
         renderFeedback(filtered);
 
+        const unitLabel = unit && unit !== "all" ? unit.replace("unit", "Unit ") : "All Vehicles";
         const label = from && to
-          ? `Showing ${filtered.length} response(s) from ${formatDateSimple(from)} to ${formatDateSimple(to)}.`
+          ? `Showing ${filtered.length} response(s) for ${unitLabel} from ${formatDateSimple(from)} to ${formatDateSimple(to)}.`
           : from
-          ? `Showing ${filtered.length} response(s) from ${formatDateSimple(from)} onwards.`
-          : `Showing ${filtered.length} response(s) up to ${formatDateSimple(to)}.`;
+          ? `Showing ${filtered.length} response(s) for ${unitLabel} from ${formatDateSimple(from)} onwards.`
+          : to
+          ? `Showing ${filtered.length} response(s) for ${unitLabel} up to ${formatDateSimple(to)}.`
+          : `Showing all ${filtered.length} response(s) for ${unitLabel}.`;
 
         document.getElementById("filter-status").textContent = label;
+      }
+
+      // ── Filter rows by selected unit ───────────────────────────────
+      // Sheet column N has values like: "Unit 1 (BATRASCO No.1)", "Unit 2 (BATRASCO No.2)"
+      // Dropdown values: "unit01", "unit02"  →  extract the number and match "Unit 1", "Unit 2"
+      function filterByUnit(rows, unit) {
+        if (!unit || unit === "all") return rows;
+        if (COL.unit === undefined || COL.unit === null) return rows;
+
+        // "unit01" → "1", "unit02" → "2"
+        const unitNum = unit.replace(/^unit0?/, "");
+
+        return rows.filter(row => {
+          const val = (row[COL.unit] || "").toLowerCase();
+          // Matches "unit 1 (batrasco no.1)", "unit1", etc.
+          return val.includes("unit " + unitNum) || val.startsWith("unit" + unitNum);
+        });
       }
 
       function formatDateSimple(dateStr) {
@@ -222,12 +240,13 @@
       function downloadCSV() {
         const from = document.getElementById("dateFrom").value;
         const to   = document.getElementById("dateTo").value;
+        const unit = document.getElementById("vehicleSelect").value;
 
-        let rows = allRows;
+        let rows = filterByUnit(allRows, unit);
         if (from || to) {
           const fromDate = from ? new Date(from) : null;
           const toDate   = to   ? new Date(to + "T23:59:59") : null;
-          rows = allRows.filter(row => {
+          rows = rows.filter(row => {
             const ts = new Date(row[COL.timestamp] || "");
             if (isNaN(ts)) return false;
             if (fromDate && ts < fromDate) return false;
@@ -279,6 +298,7 @@
       function autoDetectColumns(header) {
         const patterns = {
           timestamp:    ["timestamp"],
+          unit:         ["unit", "vehicle", "bus", "jeep", "plate"],
           frequency:    ["often", "kadalas"],
           courtesy:     ["courtesy", "magalang", "konduktor"],
           safety:       ["safe", "kaligtas"],
@@ -457,8 +477,55 @@
         el.style.display = "none";
       }
 
-      // Auto-load on page open
-      loadFeedback();
+      // ── Populate vehicle dropdown from localStorage ─────────────
+      const STORAGE_KEY = "batrasco_units";
+
+      function loadUnitsFromStorage() {
+        try {
+          return JSON.parse(localStorage.getItem(STORAGE_KEY)) || getDefaultUnits();
+        } catch { return getDefaultUnits(); }
+      }
+
+      function getDefaultUnits() {
+        return [
+          { name: "Unit 01", deviceId: "ESP32-001", status: "Online",  location: "Lipa City" },
+          { name: "Unit 02", deviceId: "ESP32-002", status: "Offline", location: "Unknown"   }
+        ];
+      }
+
+      function populateVehicleDropdown() {
+        const units = loadUnitsFromStorage();
+        const sel = document.getElementById("vehicleSelect");
+        // Remove existing non-"all" options
+        [...sel.options].filter(o => o.value !== "all").forEach(o => o.remove());
+        units.forEach((u, i) => {
+          const key = "unit" + String(i + 1).padStart(2, "0");
+          const opt = document.createElement("option");
+          opt.value = key;
+          opt.textContent = u.name;
+          sel.appendChild(opt);
+        });
+      }
+
+      // ── Auto-load on page open, pre-select unit from URL param if present
+      (function () {
+        // Populate dropdown from localStorage first
+        populateVehicleDropdown();
+
+        const params = new URLSearchParams(window.location.search);
+        const unit = params.get("unit");
+        if (unit) {
+          const sel = document.getElementById("vehicleSelect");
+          if (sel) {
+            const match = [...sel.options].find(o => o.value === unit);
+            if (match) sel.value = match.value;
+          }
+        }
+        // Load data, then apply unit filter if one was passed in URL
+        loadFeedback().then(() => {
+          if (unit && unit !== "all") applyFilters();
+        });
+      })();
     </script>
   </body>
 </html>

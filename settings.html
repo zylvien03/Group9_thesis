@@ -479,6 +479,23 @@
         padding-top: 20px;
         border-top: 2px solid #eee;
       }
+
+      /* --- Role Filter Buttons --- */
+      .role-filter-btn {
+        padding: 7px 18px;
+        border: 1px solid #ddd;
+        background: white;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 500;
+        color: #666;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .role-filter-btn:hover { background: #f0f0ff; color: rgb(17,17,240); border-color: rgb(17,17,240); }
+      .role-filter-btn.active { background: rgb(17,17,240); color: white; border-color: rgb(17,17,240); }
+
+      .role-conductor { background: #fff8e1; color: #f39c12; }
     </style>
   </head>
 
@@ -528,28 +545,42 @@
 
             <div class="settings-section">
               <h4>Registered Devices</h4>
-              <div class="form-row">
-                <div class="form-row-label">
-                  <strong>Unit 01 (ESP32)</strong>
-                  <span>Device ID: ESP32-001 &nbsp;·&nbsp; <span style="color:#27ae60;">● Online</span></span>
-                </div>
-                <div class="form-row-control" style="display:flex; gap:8px;">
-                  <button class="btn-secondary">Rename</button>
-                  <button class="btn-danger">Remove</button>
-                </div>
-              </div>
-              <div class="form-row">
-                <div class="form-row-label">
-                  <strong>Unit 02 (ESP32)</strong>
-                  <span>Device ID: ESP32-002 &nbsp;·&nbsp; <span style="color:#e74c3c;">● Offline</span></span>
-                </div>
-                <div class="form-row-control" style="display:flex; gap:8px;">
-                  <button class="btn-secondary">Rename</button>
-                  <button class="btn-danger">Remove</button>
-                </div>
-              </div>
+              <div id="devices-list"></div>
               <div style="margin-top:16px;">
-                <button class="btn-primary">+ Register New Device</button>
+                <button class="btn-primary" onclick="openRegisterModal()">+ Register New Device</button>
+              </div>
+            </div>
+
+            <!-- Register New Device Modal -->
+            <div id="register-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:1000; align-items:center; justify-content:center;">
+              <div style="background:white; border-radius:10px; padding:30px; width:360px; box-shadow:0 10px 40px rgba(0,0,0,0.2);">
+                <h3 style="margin:0 0 18px; font-size:17px; color:#222;">Register New Device</h3>
+                <div style="margin-bottom:14px;">
+                  <label style="font-size:12px; color:#888; text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:6px;">Unit Name</label>
+                  <input id="new-unit-name" class="settings-input" style="width:100%; box-sizing:border-box;" placeholder="e.g. Unit 03" />
+                </div>
+                <div style="margin-bottom:14px;">
+                  <label style="font-size:12px; color:#888; text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:6px;">Device ID</label>
+                  <input id="new-device-id" class="settings-input" style="width:100%; box-sizing:border-box;" placeholder="e.g. ESP32-003" />
+                </div>
+                <div id="register-error" style="color:#e74c3c; font-size:13px; margin-bottom:12px; display:none;"></div>
+                <div style="display:flex; gap:10px; justify-content:flex-end;">
+                  <button class="btn-secondary" onclick="closeRegisterModal()">Cancel</button>
+                  <button class="btn-primary" onclick="registerDevice()">Register</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Rename Modal -->
+            <div id="rename-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:1000; align-items:center; justify-content:center;">
+              <div style="background:white; border-radius:10px; padding:30px; width:320px; box-shadow:0 10px 40px rgba(0,0,0,0.2);">
+                <h3 style="margin:0 0 18px; font-size:17px; color:#222;">Rename Unit</h3>
+                <input id="rename-input" class="settings-input" style="width:100%; box-sizing:border-box;" placeholder="New unit name" />
+                <input type="hidden" id="rename-index" />
+                <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:18px;">
+                  <button class="btn-secondary" onclick="closeRenameModal()">Cancel</button>
+                  <button class="btn-primary" onclick="confirmRename()">Save</button>
+                </div>
               </div>
             </div>
 
@@ -607,13 +638,20 @@
             <div class="settings-panel-header">
               <div class="panel-icon">👥</div>
               <div>
-                <h2>Drivers &amp; Admins</h2>
-                <p>Manage user accounts, roles, and access permissions.</p>
+                <h2>Drivers, Conductors &amp; Admins</h2>
+                <p>Register and manage personnel. Assign drivers and conductors to units.</p>
               </div>
             </div>
 
+            <!-- Filter tabs -->
+            <div style="display:flex; gap:8px; margin-bottom:20px;">
+              <button class="role-filter-btn active" onclick="filterPersonnel('all', this)">All</button>
+              <button class="role-filter-btn" onclick="filterPersonnel('Admin', this)">Admins</button>
+              <button class="role-filter-btn" onclick="filterPersonnel('Driver', this)">Drivers</button>
+              <button class="role-filter-btn" onclick="filterPersonnel('Conductor', this)">Conductors</button>
+            </div>
+
             <div class="settings-section">
-              <h4>User Accounts</h4>
               <table class="user-table">
                 <thead>
                   <tr>
@@ -623,80 +661,47 @@
                     <th>Actions</th>
                   </tr>
                 </thead>
-                <tbody>
-                  <tr>
-                    <td>
-                      <span class="avatar-circle">JD</span>
-                      Juan Dela Cruz
-                    </td>
-                    <td><span class="role-badge role-admin">Admin</span></td>
-                    <td>— All Units —</td>
-                    <td>
-                      <button class="btn-secondary" style="font-size:12px; padding:6px 12px;">Edit</button>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <span class="avatar-circle" style="background:#27ae60;">MR</span>
-                      Mario Reyes
-                    </td>
-                    <td><span class="role-badge role-driver">Driver</span></td>
-                    <td>Unit 01</td>
-                    <td>
-                      <button class="btn-secondary" style="font-size:12px; padding:6px 12px;">Edit</button>
-                      <button class="btn-danger" style="font-size:12px; padding:6px 12px; margin-left:6px;">Remove</button>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <span class="avatar-circle" style="background:#27ae60;">BL</span>
-                      Ben Lim
-                    </td>
-                    <td><span class="role-badge role-driver">Driver</span></td>
-                    <td>Unit 02</td>
-                    <td>
-                      <button class="btn-secondary" style="font-size:12px; padding:6px 12px;">Edit</button>
-                      <button class="btn-danger" style="font-size:12px; padding:6px 12px; margin-left:6px;">Remove</button>
-                    </td>
-                  </tr>
-                </tbody>
+                <tbody id="personnel-tbody"></tbody>
               </table>
               <div style="margin-top:16px;">
-                <button class="btn-primary">+ Add New User</button>
+                <button class="btn-primary" onclick="openPersonnelModal()">+ Add Personnel</button>
               </div>
             </div>
+          </div>
 
-            <div class="settings-section">
-              <h4>Permissions</h4>
-              <div class="form-row">
-                <div class="form-row-label">
-                  <strong>Drivers Can View Reports</strong>
-                  <span>Allow drivers to access the Reports page.</span>
-                </div>
-                <div class="form-row-control">
-                  <label class="toggle-switch">
-                    <input type="checkbox" />
-                    <span class="toggle-slider"></span>
-                  </label>
-                </div>
-              </div>
-              <div class="form-row">
-                <div class="form-row-label">
-                  <strong>Require Login for Dashboard</strong>
-                  <span>Protect the dashboard with user authentication.</span>
-                </div>
-                <div class="form-row-control">
-                  <label class="toggle-switch">
-                    <input type="checkbox" checked />
-                    <span class="toggle-slider"></span>
-                  </label>
-                </div>
-              </div>
-            </div>
+          <!-- Add / Edit Personnel Modal -->
+          <div id="personnel-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:1000; align-items:center; justify-content:center;">
+            <div style="background:white; border-radius:10px; padding:30px; width:380px; box-shadow:0 10px 40px rgba(0,0,0,0.2);">
+              <h3 id="personnel-modal-title" style="margin:0 0 20px; font-size:17px; color:#222;">Add Personnel</h3>
 
-            <div class="save-bar">
-              <button class="btn-secondary">Cancel</button>
-              <button class="btn-primary">Save Changes</button>
+              <div style="margin-bottom:14px;">
+                <label style="font-size:12px; color:#888; text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:6px;">Full Name</label>
+                <input id="p-name" class="settings-input" style="width:100%; box-sizing:border-box;" placeholder="e.g. Juan Dela Cruz" />
+              </div>
+
+              <div style="margin-bottom:14px;">
+                <label style="font-size:12px; color:#888; text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:6px;">Role</label>
+                <select id="p-role" class="settings-input" style="width:100%; box-sizing:border-box;" onchange="toggleUnitSelect()">
+                  <option value="Driver">Driver</option>
+                  <option value="Conductor">Conductor</option>
+                  <option value="Admin">Admin</option>
+                </select>
+              </div>
+
+              <div id="p-unit-wrapper" style="margin-bottom:20px;">
+                <label style="font-size:12px; color:#888; text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:6px;">Assigned Unit</label>
+                <select id="p-unit" class="settings-input" style="width:100%; box-sizing:border-box;">
+                  <option value="">— Unassigned —</option>
+                </select>
+              </div>
+
+              <div id="personnel-error" style="color:#e74c3c; font-size:13px; margin-bottom:12px; display:none;"></div>
+              <input type="hidden" id="p-edit-index" value="" />
+
+              <div style="display:flex; gap:10px; justify-content:flex-end;">
+                <button class="btn-secondary" onclick="closePersonnelModal()">Cancel</button>
+                <button class="btn-primary" onclick="savePersonnelForm()">Save</button>
+              </div>
             </div>
           </div>
 
@@ -857,17 +862,279 @@
     </div>
 
     <script>
+      // ── Panel navigation ──────────────────────────────────────────
       function showPanel(panelId) {
-        // Hide all panels
         document.querySelectorAll('.settings-panel').forEach(p => p.classList.remove('active'));
-        // Deactivate all nav items
         document.querySelectorAll('.settings-nav-item').forEach(n => n.classList.remove('active'));
-
-        // Show selected panel
         document.getElementById('panel-' + panelId).classList.add('active');
-        // Activate clicked nav item
         event.currentTarget.classList.add('active');
       }
+
+      // ── Shared helpers ────────────────────────────────────────────
+      function escHtml(str) {
+        return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+      }
+
+      function showToast(msg, color) {
+        const t = document.createElement("div");
+        t.textContent = msg;
+        t.style.cssText = `position:fixed;bottom:24px;right:24px;background:${color||"#222"};color:#fff;padding:12px 20px;border-radius:8px;font-size:14px;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.3);opacity:0;transition:opacity 0.3s;`;
+        document.body.appendChild(t);
+        requestAnimationFrame(() => t.style.opacity = "1");
+        setTimeout(() => { t.style.opacity = "0"; setTimeout(() => t.remove(), 300); }, 2500);
+      }
+
+      // ── UNITS storage ─────────────────────────────────────────────
+      const UNITS_KEY = "batrasco_units";
+
+      function loadUnits() {
+        try { return JSON.parse(localStorage.getItem(UNITS_KEY)) || getDefaultUnits(); }
+        catch { return getDefaultUnits(); }
+      }
+      function saveUnits(u) { localStorage.setItem(UNITS_KEY, JSON.stringify(u)); }
+      function getDefaultUnits() {
+        return [
+          { name: "Unit 01", deviceId: "ESP32-001", status: "Online"  },
+          { name: "Unit 02", deviceId: "ESP32-002", status: "Offline" }
+        ];
+      }
+
+      // ── Render registered devices ─────────────────────────────────
+      function renderDevices() {
+        const units = loadUnits();
+        const list = document.getElementById("devices-list");
+        if (!list) return;
+        if (units.length === 0) {
+          list.innerHTML = '<p style="color:#aaa;font-size:14px;padding:10px 0;">No devices registered yet.</p>';
+          return;
+        }
+        list.innerHTML = units.map((u, i) => {
+          const dot = u.status === "Online"
+            ? '<span style="color:#27ae60;">● Online</span>'
+            : '<span style="color:#e74c3c;">● Offline</span>';
+          return `<div class="form-row">
+            <div class="form-row-label">
+              <strong>${escHtml(u.name)} (ESP32)</strong>
+              <span>Device ID: ${escHtml(u.deviceId)} &nbsp;·&nbsp; ${dot}</span>
+            </div>
+            <div class="form-row-control" style="display:flex;gap:8px;">
+              <button class="btn-secondary" onclick="openRenameModal(${i})">Rename</button>
+              <button class="btn-danger" onclick="removeDevice(${i})">Remove</button>
+            </div>
+          </div>`;
+        }).join("");
+      }
+
+      // ── Register device modal ─────────────────────────────────────
+      function openRegisterModal() {
+        document.getElementById("new-unit-name").value = "";
+        document.getElementById("new-device-id").value = "";
+        document.getElementById("register-error").style.display = "none";
+        document.getElementById("register-modal").style.display = "flex";
+      }
+      function closeRegisterModal() {
+        document.getElementById("register-modal").style.display = "none";
+      }
+      function registerDevice() {
+        const name     = document.getElementById("new-unit-name").value.trim();
+        const deviceId = document.getElementById("new-device-id").value.trim();
+        const errEl    = document.getElementById("register-error");
+        if (!name || !deviceId) {
+          errEl.textContent = "Unit Name and Device ID are required.";
+          errEl.style.display = "block"; return;
+        }
+        const units = loadUnits();
+        if (units.some(u => u.name.toLowerCase() === name.toLowerCase())) {
+          errEl.textContent = "A unit with that name already exists.";
+          errEl.style.display = "block"; return;
+        }
+        units.push({ name, deviceId, status: "Offline" });
+        saveUnits(units);
+        closeRegisterModal();
+        renderDevices();
+        showToast(`"${name}" registered successfully.`, "#27ae60");
+      }
+
+      // ── Remove device ─────────────────────────────────────────────
+      function removeDevice(index) {
+        const units = loadUnits();
+        const unit = units[index];
+        if (!confirm(`Remove "${unit.name}" from the fleet? This cannot be undone.`)) return;
+        units.splice(index, 1);
+        saveUnits(units);
+        renderDevices();
+        showToast(`"${unit.name}" removed.`, "#e74c3c");
+      }
+
+      // ── Rename device modal ───────────────────────────────────────
+      function openRenameModal(index) {
+        const units = loadUnits();
+        document.getElementById("rename-input").value = units[index].name;
+        document.getElementById("rename-index").value = index;
+        document.getElementById("rename-modal").style.display = "flex";
+      }
+      function closeRenameModal() {
+        document.getElementById("rename-modal").style.display = "none";
+      }
+      function confirmRename() {
+        const index   = parseInt(document.getElementById("rename-index").value);
+        const newName = document.getElementById("rename-input").value.trim();
+        if (!newName) return;
+        const units = loadUnits();
+        units[index].name = newName;
+        saveUnits(units);
+        closeRenameModal();
+        renderDevices();
+        showToast(`Renamed to "${newName}".`, "#1111f0");
+      }
+
+      // ── PERSONNEL storage ─────────────────────────────────────────
+      const PERSONNEL_KEY = "batrasco_personnel";
+
+      function loadPersonnel() {
+        try { return JSON.parse(localStorage.getItem(PERSONNEL_KEY)) || []; }
+        catch { return []; }
+      }
+      function savePersonnel(p) { localStorage.setItem(PERSONNEL_KEY, JSON.stringify(p)); }
+
+      // ── Render personnel table ────────────────────────────────────
+      let currentFilter = "all";
+
+      function filterPersonnel(role, btn) {
+        currentFilter = role;
+        document.querySelectorAll(".role-filter-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        renderPersonnel();
+      }
+
+      function getInitials(name) {
+        return name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
+      }
+
+      function roleColors(role) {
+        if (role === "Admin")     return { badge: "role-admin",     avatar: "rgb(17,17,240)" };
+        if (role === "Conductor") return { badge: "role-conductor", avatar: "#f39c12" };
+        return                           { badge: "role-driver",    avatar: "#27ae60" };
+      }
+
+      function renderPersonnel() {
+        const all = loadPersonnel();
+        const filtered = currentFilter === "all" ? all : all.filter(p => p.role === currentFilter);
+        const tbody = document.getElementById("personnel-tbody");
+        if (!tbody) return;
+
+        if (filtered.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#aaa;padding:24px;">
+            No ${currentFilter === "all" ? "personnel" : currentFilter + "s"} registered yet.
+          </td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = filtered.map(p => {
+          const realIndex = all.indexOf(p);
+          const { badge, avatar } = roleColors(p.role);
+          const initials = getInitials(p.name);
+          const unit = p.role === "Admin" ? "— All Units —" : (p.assignedUnit || "— Unassigned —");
+          const removeBtn = p.role !== "Admin"
+            ? `<button class="btn-danger" style="font-size:12px;padding:6px 12px;margin-left:6px;" onclick="removePersonnel(${realIndex})">Remove</button>`
+            : "";
+          return `<tr>
+            <td>
+              <span class="avatar-circle" style="background:${avatar};">${escHtml(initials)}</span>
+              ${escHtml(p.name)}
+            </td>
+            <td><span class="role-badge ${badge}">${escHtml(p.role)}</span></td>
+            <td>${escHtml(unit)}</td>
+            <td>
+              <button class="btn-secondary" style="font-size:12px;padding:6px 12px;" onclick="openPersonnelModal(${realIndex})">Edit</button>
+              ${removeBtn}
+            </td>
+          </tr>`;
+        }).join("");
+      }
+
+      // ── Personnel modal ───────────────────────────────────────────
+      function openPersonnelModal(editIndex) {
+        const modal = document.getElementById("personnel-modal");
+        const title = document.getElementById("personnel-modal-title");
+        const unitSel = document.getElementById("p-unit");
+
+        // Populate unit dropdown from registered units
+        const units = loadUnits();
+        unitSel.innerHTML = '<option value="">— Unassigned —</option>' +
+          units.map(u => `<option value="${escHtml(u.name)}">${escHtml(u.name)}</option>`).join("");
+
+        if (editIndex !== undefined) {
+          const p = loadPersonnel()[editIndex];
+          title.textContent = "Edit Personnel";
+          document.getElementById("p-name").value = p.name;
+          document.getElementById("p-role").value = p.role;
+          unitSel.value = p.assignedUnit || "";
+          document.getElementById("p-edit-index").value = editIndex;
+        } else {
+          title.textContent = "Add Personnel";
+          document.getElementById("p-name").value = "";
+          document.getElementById("p-role").value = "Driver";
+          unitSel.value = "";
+          document.getElementById("p-edit-index").value = "";
+        }
+
+        toggleUnitSelect();
+        document.getElementById("personnel-error").style.display = "none";
+        modal.style.display = "flex";
+      }
+
+      function closePersonnelModal() {
+        document.getElementById("personnel-modal").style.display = "none";
+      }
+
+      function toggleUnitSelect() {
+        const role = document.getElementById("p-role").value;
+        document.getElementById("p-unit-wrapper").style.display =
+          role === "Admin" ? "none" : "block";
+      }
+
+      function savePersonnelForm() {
+        const name  = document.getElementById("p-name").value.trim();
+        const role  = document.getElementById("p-role").value;
+        const unit  = document.getElementById("p-unit").value;
+        const errEl = document.getElementById("personnel-error");
+        const editI = document.getElementById("p-edit-index").value;
+
+        if (!name) {
+          errEl.textContent = "Full name is required.";
+          errEl.style.display = "block"; return;
+        }
+
+        const personnel = loadPersonnel();
+        const record = { name, role, assignedUnit: role === "Admin" ? "" : unit };
+
+        if (editI !== "") {
+          personnel[parseInt(editI)] = record;
+          showToast(`"${name}" updated.`, "#1111f0");
+        } else {
+          personnel.push(record);
+          showToast(`"${name}" added as ${role}.`, "#27ae60");
+        }
+
+        savePersonnel(personnel);
+        closePersonnelModal();
+        renderPersonnel();
+      }
+
+      function removePersonnel(index) {
+        const personnel = loadPersonnel();
+        const p = personnel[index];
+        if (!confirm(`Remove "${p.name}" (${p.role})? This cannot be undone.`)) return;
+        personnel.splice(index, 1);
+        savePersonnel(personnel);
+        renderPersonnel();
+        showToast(`"${p.name}" removed.`, "#e74c3c");
+      }
+
+      // ── Init ──────────────────────────────────────────────────────
+      renderDevices();
+      renderPersonnel();
     </script>
   </body>
 </html>

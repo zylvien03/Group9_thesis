@@ -4,6 +4,10 @@
     <title>BATRSACO Vehicles</title>
     <meta charset="UTF-8" />
     <link rel="stylesheet" href="styles.css" />
+    <style>
+      .clickable-row { cursor: pointer; transition: background 0.15s; }
+      .clickable-row:hover { background: rgba(255,255,255,0.12); }
+    </style>
   </head>
 
   <body class="mainBody">
@@ -22,25 +26,58 @@
         <h3>Active Fleet Roster</h3>
 
         <table class="fleet-table">
-          <tr>
-            <th>Vehicle ID</th>
-            <th>Hardware</th>
-            <th>Status</th>
-            <th>Last Location</th>
-          </tr>
-          <tr>
-            <td>Unit 01</td>
-            <td>ESP32 + 4G LTE</td>
-            <td class="status-online">Online</td>
-            <td>Lipa City</td>
-          </tr>
-          <tr>
-            <td>Unit 02</td>
-            <td>ESP32 + 4G LTE</td>
-            <td class="status-offline">Offline</td>
-            <td>Unknown</td>
-          </tr>
+          <thead>
+            <tr>
+              <th>Vehicle ID</th>
+              <th>Hardware</th>
+              <th>Status</th>
+              <th>Last Location</th>
+            </tr>
+          </thead>
+          <tbody id="fleet-tbody">
+            <tr><td colspan="4" style="text-align:center;color:#aaa;padding:20px;">Loading fleet...</td></tr>
+          </tbody>
         </table>
+
+        <script>
+          const STORAGE_KEY = "batrasco_units";
+
+          function loadUnits() {
+            try {
+              return JSON.parse(localStorage.getItem(STORAGE_KEY)) || getDefaultUnits();
+            } catch { return getDefaultUnits(); }
+          }
+
+          function getDefaultUnits() {
+            return [
+              { name: "Unit 01", deviceId: "ESP32-001", status: "Online",  location: "Lipa City" },
+              { name: "Unit 02", deviceId: "ESP32-002", status: "Offline", location: "Unknown"   }
+            ];
+          }
+
+          function renderFleet() {
+            const units = loadUnits();
+            const tbody = document.getElementById("fleet-tbody");
+            if (units.length === 0) {
+              tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#aaa;padding:20px;">No units registered. Go to Settings to add units.</td></tr>';
+              return;
+            }
+            tbody.innerHTML = units.map((u, i) => {
+              // Build a URL-safe unit key: "unit01", "unit02", etc.
+              const unitKey = "unit" + String(i + 1).padStart(2, "0");
+              const isOnline = u.status === "Online";
+              const statusClass = isOnline ? "status-online" : "status-offline";
+              return `<tr class="clickable-row" onclick="window.location.href='reports.html?unit=${unitKey}'" title="View ${u.name} Report">
+                <td>${u.name}</td>
+                <td>ESP32 + 4G LTE</td>
+                <td class="${statusClass}">${u.status}</td>
+                <td>${u.location || "Unknown"}</td>
+              </tr>`;
+            }).join("");
+          }
+
+          renderFleet();
+        </script>
       </div>
     </div>
   </body>

@@ -4,10 +4,6 @@
     <title>BATRSACO Vehicles</title>
     <meta charset="UTF-8" />
     <link rel="stylesheet" href="styles.css" />
-    <style>
-      .clickable-row { cursor: pointer; transition: background 0.15s; }
-      .clickable-row:hover { background: rgba(255,255,255,0.12); }
-    </style>
   </head>
 
   <body class="mainBody">
@@ -29,56 +25,254 @@
           <thead>
             <tr>
               <th>Vehicle ID</th>
-              <th>Hardware</th>
-              <th>Status</th>
+              <th>Assigned Driver</th>
               <th>Last Location</th>
             </tr>
           </thead>
           <tbody id="fleet-tbody">
-            <tr><td colspan="4" style="text-align:center;color:#aaa;padding:20px;">Loading fleet...</td></tr>
+            <tr><td colspan="3" style="text-align:center;color:#aaa;padding:20px;">Loading fleet...</td></tr>
           </tbody>
         </table>
 
-        <script>
-          const STORAGE_KEY = "batrasco_units";
+        <!-- ── Driver Evaluation Points System ── -->
+        <div class="points-section">
+          <h3>Driver Evaluation</h3>
+          <p class="sub-label">Each driver starts at 100 pts. Harsh driving events deduct 1 point each.</p>
 
-          function loadUnits() {
-            try {
-              return JSON.parse(localStorage.getItem(STORAGE_KEY)) || getDefaultUnits();
-            } catch { return getDefaultUnits(); }
-          }
+          <div class="points-grid" id="points-grid">
+            <!-- Filled by JS -->
+          </div>
 
-          function getDefaultUnits() {
-            return [
-              { name: "Unit 01", deviceId: "ESP32-001", status: "Online",  location: "Lipa City" },
-              { name: "Unit 02", deviceId: "ESP32-002", status: "Offline", location: "Unknown"   }
-            ];
-          }
+          <div class="deduct-panel">
+            <h4>⚠ Log a Harsh Event</h4>
+            <div class="deduct-controls">
+              <select id="deduct-driver" title="Select driver">
+                <option value="">— Select Driver —</option>
+              </select>
+              <select class="event-select" id="deduct-event" title="Select event type">
+                <option value="Dangerous Maneuver">Dangerous Maneuver</option>
+                <option value="Harsh Braking">Harsh Braking</option>
+                <option value="Harsh Acceleration">Harsh Acceleration</option>
+                <option value="Sharp Cornering">Sharp Cornering</option>
+                <option value="Overspeeding">Overspeeding</option>
+                <option value="Tailgating">Tailgating</option>
+                <option value="Sudden Lane Change">Sudden Lane Change</option>
+              </select>
+              <button class="deduct-btn" onclick="logHarshEvent()">− Deduct Point</button>
+              <button class="reset-btn" onclick="resetSelectedDriver()">Reset</button>
+            </div>
+            <div class="deduct-log">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Time</th>
+                    <th>Driver</th>
+                    <th>Event</th>
+                    <th>Points Left</th>
+                  </tr>
+                </thead>
+                <tbody id="log-tbody">
+                  <tr><td colspan="4" class="log-empty">No events logged yet.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
 
-          function renderFleet() {
-            const units = loadUnits();
-            const tbody = document.getElementById("fleet-tbody");
-            if (units.length === 0) {
-              tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#aaa;padding:20px;">No units registered. Go to Settings to add units.</td></tr>';
-              return;
-            }
-            tbody.innerHTML = units.map((u, i) => {
-              // Build a URL-safe unit key: "unit01", "unit02", etc.
-              const unitKey = "unit" + String(i + 1).padStart(2, "0");
-              const isOnline = u.status === "Online";
-              const statusClass = isOnline ? "status-online" : "status-offline";
-              return `<tr class="clickable-row" onclick="window.location.href='reports.html?unit=${unitKey}'" title="View ${u.name} Report">
-                <td>${u.name}</td>
-                <td>ESP32 + 4G LTE</td>
-                <td class="${statusClass}">${u.status}</td>
-                <td>${u.location || "Unknown"}</td>
-              </tr>`;
-            }).join("");
-          }
+      </div><!-- /.Randombackforgps -->
+    </div><!-- /.dashboard-content -->
 
-          renderFleet();
-        </script>
-      </div>
-    </div>
+    <script>
+      /* ─── Storage Keys ─── */
+      const UNITS_KEY   = "batrasco_units";
+      const DRIVERS_KEY = "batrasco_drivers";
+      const POINTS_KEY  = "batrasco_driver_points";
+      const LOG_KEY     = "batrasco_harsh_log";
+
+      /* ─── Helpers ─── */
+      function load(key, fallback) {
+        try { return JSON.parse(localStorage.getItem(key)) || fallback; }
+        catch { return fallback; }
+      }
+      function save(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
+
+      /* ─── Default Data ─── */
+      function getDefaultUnits() {
+        return [
+          { name: "Unit 01", deviceId: "ESP32-001", status: "Online",  location: "Lipa City", assignedDriver: "" },
+          { name: "Unit 02", deviceId: "ESP32-002", status: "Offline", location: "Unknown",   assignedDriver: "" }
+        ];
+      }
+      function getDefaultDrivers() {
+        return ["Juan dela Cruz"];
+      }
+
+      /* ─── Score helpers ─── */
+      function getScoreClass(pts) {
+        if (pts >= 80) return "good";
+        if (pts >= 50) return "warn";
+        return "bad";
+      }
+
+      /* ─── Render Fleet Table ─── */
+      function renderFleet() {
+        const units   = load(UNITS_KEY, getDefaultUnits());
+        const drivers = load(DRIVERS_KEY, getDefaultDrivers());
+        const tbody   = document.getElementById("fleet-tbody");
+
+        if (units.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#aaa;padding:20px;">No units registered. Go to Settings to add units.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = units.map((u, i) => {
+          const unitKey = "unit" + String(i + 1).padStart(2, "0");
+          const driverOptions = ['<option value="">— Unassigned —</option>',
+            ...drivers.map(d => `<option value="${d}" ${u.assignedDriver === d ? "selected" : ""}>${d}</option>`)
+          ].join("");
+
+          return `
+            <tr class="clickable-row" title="View ${u.name} Report">
+              <td onclick="window.location.href='reports.html?unit=${unitKey}'">${u.name}</td>
+              <td>
+                <select class="driver-select" onchange="assignDriver(${i}, this.value)" onclick="event.stopPropagation()">
+                  ${driverOptions}
+                </select>
+              </td>
+              <td onclick="window.location.href='reports.html?unit=${unitKey}'">${u.location || "Unknown"}</td>
+            </tr>`;
+        }).join("");
+      }
+
+      /* ─── Assign Driver ─── */
+      function assignDriver(unitIndex, driverName) {
+        const units = load(UNITS_KEY, getDefaultUnits());
+        units[unitIndex].assignedDriver = driverName;
+        save(UNITS_KEY, units);
+        renderPoints(); // refresh cards
+      }
+
+      /* ─── Render Points Grid ─── */
+      function renderPoints() {
+        const drivers = load(DRIVERS_KEY, getDefaultDrivers());
+        const points  = load(POINTS_KEY, {});
+        const units   = load(UNITS_KEY, getDefaultUnits());
+        const logs    = load(LOG_KEY, []);
+
+        const grid = document.getElementById("points-grid");
+
+        // Count events per driver
+        const eventCounts = {};
+        logs.forEach(l => { eventCounts[l.driver] = (eventCounts[l.driver] || 0) + 1; });
+
+        // Find assigned unit for each driver
+        const driverUnit = {};
+        units.forEach(u => { if (u.assignedDriver) driverUnit[u.assignedDriver] = u.name; });
+
+        if (drivers.length === 0) {
+          grid.innerHTML = '<p style="color:#aaa;font-size:13px;">No drivers found. Add drivers in Settings.</p>';
+          return;
+        }
+
+        grid.innerHTML = drivers.map(d => {
+          const pts = points[d] !== undefined ? points[d] : 100;
+          const cls = getScoreClass(pts);
+          const evts = eventCounts[d] || 0;
+          const unit = driverUnit[d] ? `<span class="unit-tag">🚌 ${driverUnit[d]}</span>` : `<span class="unit-tag" style="color:#ddd;">Unassigned</span>`;
+          return `
+            <div class="points-card">
+              <div class="driver-label" title="${d}">${d}</div>
+              ${unit}
+              <div class="score-row">
+                <div class="score-circle ${cls}">${pts}</div>
+                <div class="score-info">
+                  <div class="score-bar-bg">
+                    <div class="score-bar-fill ${cls}" style="width:${pts}%"></div>
+                  </div>
+                  <div class="score-events">${evts} harsh event${evts !== 1 ? "s" : ""} logged</div>
+                </div>
+              </div>
+            </div>`;
+        }).join("");
+
+        // Populate driver dropdown
+        populateDeductDropdown(drivers);
+      }
+
+      /* ─── Populate Deduct Dropdown ─── */
+      function populateDeductDropdown(drivers) {
+        const sel = document.getElementById("deduct-driver");
+        const current = sel.value;
+        sel.innerHTML = '<option value="">— Select Driver —</option>' +
+          drivers.map(d => `<option value="${d}" ${current === d ? "selected" : ""}>${d}</option>`).join("");
+      }
+
+      /* ─── Log Harsh Event ─── */
+      function logHarshEvent() {
+        const driver = document.getElementById("deduct-driver").value;
+        const event  = document.getElementById("deduct-event").value;
+
+        if (!driver) { alert("Please select a driver first."); return; }
+
+        const points = load(POINTS_KEY, {});
+        const current = points[driver] !== undefined ? points[driver] : 100;
+        if (current <= 0) { alert(`${driver} already has 0 points.`); return; }
+
+        points[driver] = current - 1;
+        save(POINTS_KEY, points);
+
+        // Log entry
+        const logs = load(LOG_KEY, []);
+        logs.unshift({
+          time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          driver,
+          event,
+          pointsLeft: points[driver]
+        });
+        if (logs.length > 50) logs.length = 50; // keep last 50
+        save(LOG_KEY, logs);
+
+        renderPoints();
+        renderLog();
+      }
+
+      /* ─── Reset Selected Driver ─── */
+      function resetSelectedDriver() {
+        const driver = document.getElementById("deduct-driver").value;
+        if (!driver) { alert("Please select a driver to reset."); return; }
+        if (!confirm(`Reset ${driver}'s score back to 100?`)) return;
+
+        const points = load(POINTS_KEY, {});
+        points[driver] = 100;
+        save(POINTS_KEY, points);
+
+        renderPoints();
+        renderLog();
+      }
+
+      /* ─── Render Event Log ─── */
+      function renderLog() {
+        const logs = load(LOG_KEY, []);
+        const tbody = document.getElementById("log-tbody");
+
+        if (logs.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4" class="log-empty">No events logged yet.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = logs.map(l => `
+          <tr>
+            <td>${l.time}</td>
+            <td>${l.driver}</td>
+            <td><span class="event-badge">${l.event}</span></td>
+            <td><strong style="color:${l.pointsLeft >= 80 ? '#27ae60' : l.pointsLeft >= 50 ? '#f39c12' : '#e74c3c'}">${l.pointsLeft} pts</strong></td>
+          </tr>`).join("");
+      }
+
+      /* ─── Init ─── */
+      renderFleet();
+      renderPoints();
+      renderLog();
+    </script>
   </body>
 </html>

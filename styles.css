@@ -1,11 +1,17 @@
-/* --- Global Styles --- */
+/* =========================================
+   --- Global Styles ---
+   Used by: index.html, vehicle.html, reports.html, settings.html
+   ========================================= */
 .mainBody {
   margin: 0;
   font-family: Arial, Helvetica, sans-serif;
   background-color: #f4f7f6; /* Soft off-white to make the white cards stand out */
 }
 
-/* --- Navigation Bar --- */
+/* =========================================
+   --- Navigation Bar ---
+   Used by: index.html, vehicle.html, reports.html, settings.html
+   ========================================= */
 .naviBar {
   background-color: rgb(17, 17, 240);
   color: white;
@@ -33,7 +39,10 @@
   opacity: 0.8;
 }
 
-/* --- Quick Status Cards --- */
+/* =========================================
+   --- Quick Status Cards ---
+   Used by: index.html
+   ========================================= */
 .status-cards-container {
   display: flex;
   gap: 20px;
@@ -68,14 +77,20 @@
   color: #27ae60; /* Green for no errors */
 }
 
-/* --- Dashboard Layout --- */
+/* =========================================
+   --- Dashboard Layout ---
+   Used by: index.html, vehicle.html, reports.html, settings.html
+   ========================================= */
 .dashboard-content {
   display: flex;
   gap: 20px;
   padding: 20px;
 }
 
-/* --- Main Dashboard Columns --- */
+/* =========================================
+   --- Main Dashboard Columns ---
+   Used by: index.html, vehicle.html, reports.html
+   ========================================= */
 .Randombackforgps {
   flex: 2; /* Takes up 2/3 of the space */
   background: white;
@@ -100,7 +115,10 @@
   color: #333;
 }
 
-/* --- Internal Box Elements --- */
+/* =========================================
+   --- Internal Box Elements ---
+   Used by: index.html, reports.html
+   ========================================= */
 .gpsTracking {
   width: 100%;
   height: 500px;
@@ -123,8 +141,11 @@
   border-radius: 8px;
   border: 1px dashed #ccc; /* Added a dashed border to look like a placeholder */
 }
-/* this is for the new file the vehicles.html*/
-/* --- Fleet Roster Table Styling --- */
+
+/* =========================================
+   --- Fleet Roster Table ---
+   Used by: vehicle.html
+   ========================================= */
 .fleet-table {
   width: 100%;
   text-align: left;
@@ -152,7 +173,294 @@
   color: #e74c3c;
   font-weight: bold;
 }
-/* --- Reports Page Layout Modifiers --- */
+
+/* =========================================
+   --- Clickable Table Rows ---
+   Used by: vehicle.html
+   ========================================= */
+.clickable-row {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.clickable-row:hover {
+  background: rgba(17, 17, 240, 0.04);
+}
+
+/* =========================================
+   --- Driver Dropdown in Table ---
+   Used by: vehicle.html
+   ========================================= */
+.driver-select {
+  padding: 6px 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #333;
+  background: #fafafa;
+  cursor: pointer;
+  min-width: 150px;
+  transition: border-color 0.2s;
+}
+
+.driver-select:focus {
+  outline: none;
+  border-color: rgb(17, 17, 240);
+  box-shadow: 0 0 0 3px rgba(17, 17, 240, 0.08);
+}
+
+.driver-select:hover {
+  border-color: #aaa;
+}
+
+/* =========================================
+   --- Driver Evaluation Points System ---
+   Used by: vehicle.html
+   ========================================= */
+.points-section {
+  margin-top: 28px;
+  border-top: 2px solid #eee;
+  padding-top: 20px;
+}
+
+.points-section h3 {
+  margin: 0 0 4px;
+  color: #333;
+  font-size: 16px;
+}
+
+.points-section .sub-label {
+  font-size: 12px;
+  color: #999;
+  margin: 0 0 18px;
+}
+
+.points-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.points-card {
+  background: #f8f9ff;
+  border: 1px solid #e8eaff;
+  border-radius: 10px;
+  padding: 16px 18px;
+  position: relative;
+  transition: box-shadow 0.2s;
+}
+
+.points-card:hover {
+  box-shadow: 0 4px 14px rgba(17, 17, 240, 0.1);
+}
+
+.points-card .driver-label {
+  font-size: 13px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.points-card .unit-tag {
+  font-size: 11px;
+  color: #aaa;
+  margin-bottom: 10px;
+}
+
+/* --- Score Circle --- */
+.score-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.score-circle {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  font-weight: bold;
+  color: white;
+  flex-shrink: 0;
+}
+
+.score-circle.good { background: #27ae60; }
+.score-circle.warn { background: #f39c12; }
+.score-circle.bad  { background: #e74c3c; }
+.score-circle.na   { background: #bbb; }
+
+.score-info {
+  flex: 1;
+}
+
+.score-bar-bg {
+  height: 6px;
+  background: #e8e8e8;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 5px;
+}
+
+.score-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.score-bar-fill.good { background: #27ae60; }
+.score-bar-fill.warn { background: #f39c12; }
+.score-bar-fill.bad  { background: #e74c3c; }
+
+.score-events {
+  font-size: 11px;
+  color: #999;
+}
+
+/* --- Deduct Panel --- */
+.deduct-panel {
+  background: white;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  padding: 18px 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.deduct-panel h4 {
+  margin: 0 0 14px;
+  font-size: 13px;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.deduct-controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.deduct-controls select,
+.deduct-controls .event-select {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #333;
+  background: #fafafa;
+  cursor: pointer;
+  flex: 1;
+  min-width: 140px;
+}
+
+.deduct-controls select:focus,
+.deduct-controls .event-select:focus {
+  outline: none;
+  border-color: rgb(17, 17, 240);
+}
+
+.deduct-btn {
+  padding: 8px 18px;
+  background: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.deduct-btn:hover {
+  background: #c0392b;
+}
+
+.reset-btn {
+  padding: 8px 14px;
+  background: #f0f0f0;
+  color: #555;
+  border: none;
+  border-radius: 5px;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.reset-btn:hover {
+  background: #ddd;
+}
+
+/* --- Deduct Event Log --- */
+.deduct-log {
+  margin-top: 14px;
+  max-height: 160px;
+  overflow-y: auto;
+  border: 1px solid #f0f0f0;
+  border-radius: 6px;
+}
+
+.deduct-log table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+
+.deduct-log th {
+  padding: 8px 12px;
+  background: #f8f8f8;
+  color: #888;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+  position: sticky;
+  top: 0;
+}
+
+.deduct-log td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #f5f5f5;
+  color: #333;
+}
+
+.deduct-log tr:last-child td {
+  border-bottom: none;
+}
+
+.log-empty {
+  padding: 14px;
+  text-align: center;
+  color: #bbb;
+  font-size: 12px;
+  font-style: italic;
+}
+
+.event-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #fdecea;
+  color: #e74c3c;
+}
+
+/* =========================================
+   --- Reports Page Layout ---
+   Used by: reports.html
+   ========================================= */
 
 /* Forces the boxes on the reports page to stack vertically */
 .reports-layout {
@@ -178,7 +486,7 @@
   color: #777;
 }
 
-/* --- Report Controls Styling --- */
+/* --- Report Controls --- */
 .report-controls {
   display: flex;
   align-items: center;
@@ -227,8 +535,197 @@
   background-color: #219653;
 }
 
+/* --- Filter Status Message --- */
+.filter-status {
+  margin: 8px 0 0 0;
+  font-size: 13px;
+  color: #555;
+  font-style: italic;
+}
+
 /* =========================================
-   --- Login Page Styles --- 
+   --- Passenger Feedback Section ---
+   Used by: reports.html
+   ========================================= */
+.feedback-section {
+  margin-top: 15px;
+}
+
+.feedback-summary {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.feedback-stat {
+  flex: 1;
+  min-width: 110px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 14px 16px;
+  text-align: center;
+  border: 1px solid #e8e8e8;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.feedback-stat .stat-label {
+  display: block;
+  font-size: 11px;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.feedback-stat .stat-value {
+  display: block;
+  font-size: 26px;
+  font-weight: bold;
+  color: rgb(17, 17, 240);
+  line-height: 1;
+}
+
+.feedback-stat .stat-value.positive { color: #27ae60; }
+.feedback-stat .stat-value.negative { color: #e74c3c; }
+.feedback-stat .stat-value.neutral  { color: #f39c12; }
+
+/* --- Feedback Table --- */
+.feedback-table-wrap {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid #eee;
+}
+
+.feedback-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  min-width: 1400px;
+}
+
+.feedback-table th {
+  padding: 11px 14px;
+  border-bottom: 2px solid #e0e0e0;
+  color: #444;
+  text-align: left;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  white-space: nowrap;
+}
+
+.feedback-table td {
+  padding: 11px 14px;
+  border-bottom: 1px solid #f0f0f0;
+  vertical-align: middle;
+  color: #333;
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.feedback-table td:nth-child(11),
+.feedback-table td:nth-child(12),
+.feedback-table td:nth-child(13) {
+  white-space: normal;
+  min-width: 180px;
+  max-width: 250px;
+}
+
+.feedback-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.feedback-table tbody tr:hover {
+  background: #fafafa;
+}
+
+/* --- Feedback Badges --- */
+.feedback-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge-positive { background: #d4edda; color: #1e7e34; }
+.badge-negative { background: #fde8e8; color: #c0392b; }
+.badge-neutral  { background: #fff3cd; color: #856404; }
+
+/* --- Loading State --- */
+.feedback-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 24px 0;
+  color: #999;
+  font-size: 14px;
+}
+
+.spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 3px solid #e0e0e0;
+  border-top-color: rgb(17, 17, 240);
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* --- Error & Config Notice --- */
+.feedback-error {
+  padding: 14px 16px;
+  background: #fff0f0;
+  color: #c0392b;
+  border-radius: 6px;
+  font-size: 13.5px;
+  border-left: 4px solid #e74c3c;
+  line-height: 1.6;
+}
+
+.config-notice {
+  padding: 14px 16px;
+  background: #fffbe6;
+  color: #856404;
+  border-radius: 6px;
+  font-size: 13.5px;
+  border-left: 4px solid #f39c12;
+  margin-bottom: 15px;
+}
+
+/* --- Refresh Button --- */
+.refresh-btn {
+  float: right;
+  padding: 5px 13px;
+  background: #f4f7f6;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 13px;
+  cursor: pointer;
+  color: #555;
+  transition: 0.2s;
+  font-family: inherit;
+}
+
+.refresh-btn:hover {
+  background: rgb(17, 17, 240);
+  color: white;
+  border-color: rgb(17, 17, 240);
+}
+
+/* =========================================
+   --- Login Page ---
+   Used by: (login page / future auth page)
    ========================================= */
 
 /* Center the login container on the screen */
@@ -261,7 +758,7 @@
 
 .login-header h2 {
   margin: 0;
-  color: rgb(17, 17, 240); /* Your primary brand blue */
+  color: rgb(17, 17, 240); /* Primary brand blue */
   font-size: 28px;
   letter-spacing: 1px;
 }
@@ -348,204 +845,10 @@
   background-color: rgb(10, 10, 200); /* Slightly darker blue on hover */
 }
 
-/* --- Filter Status Message --- */
-.filter-status {
-  margin: 8px 0 0 0;
-  font-size: 13px;
-  color: #555;
-  font-style: italic;
-}
-
-/* --- Feedback Section --- */
-.feedback-section {
-  margin-top: 15px;
-}
-.feedback-summary {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-}
-
-.feedback-stat {
-  flex: 1;
-  min-width: 110px;
-  background: #f8f9fa;
-  border-radius: 8px;
-  padding: 14px 16px;
-  text-align: center;
-  border: 1px solid #e8e8e8;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-}
-
-.feedback-stat .stat-label {
-  display: block;
-  font-size: 11px;
-  color: #999;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 8px;
-  font-weight: 600;
-}
-
-.feedback-stat .stat-value {
-  display: block;
-  font-size: 26px;
-  font-weight: bold;
-  color: rgb(17, 17, 240);
-  line-height: 1;
-}
-
-.feedback-stat .stat-value.positive { color: #27ae60; }
-.feedback-stat .stat-value.negative { color: #e74c3c; }
-.feedback-stat .stat-value.neutral  { color: #f39c12; }
-
-/* --- Feedback Table --- */
-.feedback-table-wrap {
-  overflow-x: auto;
-  border-radius: 8px;
-  border: 1px solid #eee;
-}
-
-
-
-.feedback-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13.5px;
-  min-width: 1400px;
-}
-
-  background #f4f7f6
-
-
-.feedback-table th {
-  padding: 11px 14px;
-  border-bottom: 2px solid #e0e0e0;
-  color: #444;
-  text-align: left;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  white-space: nowrap;
-}
-
-
-
-.feedback-table td {
-  padding: 11px 14px;
-  border-bottom: 1px solid #f0f0f0;
-  vertical-align: middle;
-  color: #333;
-  max-width: 200px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.feedback-table td:nth-child(11),
-.feedback-table td:nth-child(12),
-.feedback-table td:nth-child(13) {
-  white-space: normal;
-  min-width: 180px;
-  max-width: 250px;
-}
-
-.feedback-table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-.feedback-table tbody tr:hover {
-  background: #fafafa;
-}
-
-.feedback-table tbody tr:last-child td {
-  background: #fafafa;
-}
-
-/* --- Badges --- */
-.feedback-badge {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.badge-positive { background: #d4edda; color: #1e7e34; }
-.badge-negative { background: #fde8e8; color: #c0392b; }
-.badge-neutral  { background: #fff3cd; color: #856404; }
-
-/* --- Loading State --- */
-.feedback-loading {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 24px 0;
-  color: #999;
-  font-size: 14px;
-}
-
-.spinner {
-  display: inline-block;
-  width: 18px;
-  height: 18px;
-  border: 3px solid #e0e0e0;
-  border-top-color: rgb(17, 17, 240);
-  border-radius: 50%;
-  animation: spin 0.75s linear infinite;
-  flex-shrink: 0;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-/* --- Error & Config Notice --- */
-.feedback-error {
-  padding: 14px 16px;
-  background: #fff0f0;
-  color: #c0392b;
-  border-radius: 6px;
-  font-size: 13.5px;
-  border-left: 4px solid #e74c3c;
-  line-height: 1.6;
-}
-
-.config-notice {
-  padding: 14px 16px;
-  background: #fffbe6;
-  color: #856404;
-  border-radius: 6px;
-  font-size: 13.5px;
-  border-left: 4px solid #f39c12;
-  margin-bottom: 15px;
-}
-
-/* --- Refresh Button --- */
-.refresh-btn {
-  float: right;
-  padding: 5px 13px;
-  background: #f4f7f6;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  font-size: 13px;
-  cursor: pointer;
-  color: #555;
-  transition: 0.2s;
-  font-family: inherit;
-}
-
-.refresh-btn:hover {
-  background: rgb(17, 17, 240);
-  color: white;
-  border-color: rgb(17, 17, 240);
-}
 /* =========================================
-   --- Settings Page Styles ---
+   --- Settings Page ---
+   Used by: settings.html
    ========================================= */
-
 .settings-layout {
   flex-direction: column;
   gap: 0;
@@ -564,7 +867,7 @@
   flex-shrink: 0;
   background: white;
   border-radius: 7px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 }
 
@@ -616,7 +919,7 @@
   flex: 1;
   background: white;
   border-radius: 7px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 }
 
@@ -767,7 +1070,7 @@
   transform: translateX(20px);
 }
 
-/* --- Buttons --- */
+/* --- Buttons (Primary / Danger / Secondary) --- */
 .btn-primary {
   padding: 10px 20px;
   background-color: rgb(17, 17, 240);
@@ -816,7 +1119,7 @@
   background: #e0e0e0;
 }
 
-/* --- Table Styles (Drivers & Admins) --- */
+/* --- User Table (Drivers & Admins) --- */
 .user-table {
   width: 100%;
   border-collapse: collapse;
@@ -846,6 +1149,7 @@
   border-bottom: none;
 }
 
+/* --- Role Badges --- */
 .role-badge {
   display: inline-block;
   padding: 3px 10px;
@@ -871,6 +1175,7 @@
   color: #f39c12;
 }
 
+/* --- Avatar Circle --- */
 .avatar-circle {
   width: 32px;
   height: 32px;
@@ -884,6 +1189,31 @@
   font-weight: bold;
   margin-right: 10px;
   vertical-align: middle;
+}
+
+/* --- Role Filter Buttons --- */
+.role-filter-btn {
+  padding: 7px 18px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.role-filter-btn:hover {
+  background: #f0f0ff;
+  color: rgb(17, 17, 240);
+  border-color: rgb(17, 17, 240);
+}
+
+.role-filter-btn.active {
+  background: rgb(17, 17, 240);
+  color: white;
+  border-color: rgb(17, 17, 240);
 }
 
 /* --- Analytics Cards --- */
@@ -917,6 +1247,7 @@
   letter-spacing: 0.8px;
 }
 
+/* --- Bar Chart --- */
 .bar-chart {
   display: flex;
   align-items: flex-end;
@@ -955,7 +1286,7 @@
   margin-top: 6px;
 }
 
-/* --- About Us --- */
+/* --- About Us Section --- */
 .about-logo-banner {
   background: linear-gradient(135deg, rgb(17, 17, 240), rgb(60, 60, 255));
   border-radius: 10px;
@@ -1016,6 +1347,7 @@
   margin-top: 20px;
 }
 
+/* --- Save Bar --- */
 .save-bar {
   display: flex;
   justify-content: flex-end;
@@ -1023,29 +1355,4 @@
   margin-top: 24px;
   padding-top: 20px;
   border-top: 2px solid #eee;
-}
-
-/* --- Role Filter Buttons --- */
-.role-filter-btn {
-  padding: 7px 18px;
-  border: 1px solid #ddd;
-  background: white;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 500;
-  color: #666;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.role-filter-btn:hover {
-  background: #f0f0ff;
-  color: rgb(17, 17, 240);
-  border-color: rgb(17, 17, 240);
-}
-
-.role-filter-btn.active {
-  background: rgb(17, 17, 240);
-  color: white;
-  border-color: rgb(17, 17, 240);
 }
